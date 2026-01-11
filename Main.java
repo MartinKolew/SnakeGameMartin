@@ -10,7 +10,7 @@ public class Main extends JFrame {
     private User currentUser;
 
     public Main() {
-        setTitle("Snake Game - Premium Edition");
+        setTitle("Snake Game - Martin Version");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(600, 650);
         setLocationRelativeTo(null);
