@@ -10,7 +10,7 @@ public class Main extends JFrame {
     private User currentUser;
 
     public Main() {
-        setTitle("Snake Game - Martin Version");
+        setTitle("Snake Game - Martin Version"); 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(600, 650);
         setLocationRelativeTo(null);
@@ -199,6 +199,7 @@ public class Main extends JFrame {
         int applesEaten, appleX, appleY;
         char direction = 'R';
         boolean running = false;
+        boolean paused = false;
         Timer timer;
         JButton restartBtn, menuBtn;
 
@@ -221,7 +222,7 @@ public class Main extends JFrame {
 
         void startGame() { newApple(); running = true; timer = new Timer(100, this); timer.start(); }
         void restartGame() {
-            bodyParts = 6; applesEaten = 0; direction = 'R';
+            bodyParts = 6; applesEaten = 0; direction = 'R'; paused = false;
             for(int i=0; i<bodyParts; i++) { x[i] = 0; y[i] = 0; }
             restartBtn.setVisible(false); menuBtn.setVisible(false);
             running = true; timer.start(); repaint();
@@ -239,13 +240,29 @@ public class Main extends JFrame {
             }
             if (running) {
                 g.setColor(Color.GRAY); g.fillOval(appleX, appleY, UNIT_SIZE, UNIT_SIZE);
+                
                 for (int i = 0; i < bodyParts; i++) {
                     g.setColor(Color.WHITE); g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
                     if (i % 2 != 0) { g.setColor(Color.BLACK); g.fillRect(x[i]+5, y[i], 4, UNIT_SIZE); g.fillRect(x[i]+16, y[i], 4, UNIT_SIZE); }
                 }
+
                 g.setColor(Color.WHITE); g.setFont(new Font("Arial", Font.BOLD, 18));
                 g.drawString("Score: " + applesEaten, 10, 25);
                 g.drawString("High Score: " + currentUser.getHighScore(), 10, 50);
+
+                g.setFont(new Font("Arial", Font.PLAIN, 14));
+                String pauseHint = "SPACE: Pause";
+                int hintWidth = g.getFontMetrics().stringWidth(pauseHint);
+                g.drawString(pauseHint, 600 - hintWidth - 15, 25);
+
+                if(paused) {
+                    g.setColor(new Color(0, 0, 0, 150)); // Darken screen
+                    g.fillRect(0, 0, 600, 600);
+                    g.setColor(Color.WHITE);
+                    g.setFont(new Font("Arial", Font.BOLD, 50));
+                    FontMetrics fm = getFontMetrics(g.getFont());
+                    g.drawString("PAUSED", (600 - fm.stringWidth("PAUSED")) / 2, 300);
+                }
             } else { gameOver(g); }
         }
 
@@ -284,15 +301,30 @@ public class Main extends JFrame {
             String highText = "Your Best: " + currentUser.getHighScore();
             g.drawString(highText, (600 - g.getFontMetrics().stringWidth(highText)) / 2, 350);
         }
-        @Override public void actionPerformed(ActionEvent e) { if (running) { move(); checkApple(); checkCollisions(); } repaint(); }
+
+        @Override public void actionPerformed(ActionEvent e) { 
+            if (running && !paused) { 
+                move(); 
+                checkApple(); 
+                checkCollisions(); 
+            } 
+            repaint(); 
+        }
+
         private class MyKeyAdapter extends KeyAdapter {
             @Override
             public void keyPressed(KeyEvent e) {
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_LEFT: case KeyEvent.VK_A: if (direction != 'R') direction = 'L'; break;
-                    case KeyEvent.VK_RIGHT: case KeyEvent.VK_D: if (direction != 'L') direction = 'R'; break;
-                    case KeyEvent.VK_UP: case KeyEvent.VK_W: if (direction != 'D') direction = 'U'; break;
-                    case KeyEvent.VK_DOWN: case KeyEvent.VK_S: if (direction != 'U') direction = 'D'; break;
+                if(e.getKeyCode() == KeyEvent.VK_SPACE || e.getKeyCode() == KeyEvent.VK_P) {
+                    if(running) paused = !paused;
+                    return;
+                }
+                if(!paused) {
+                    switch (e.getKeyCode()) {
+                        case KeyEvent.VK_LEFT: case KeyEvent.VK_A: if (direction != 'R') direction = 'L'; break;
+                        case KeyEvent.VK_RIGHT: case KeyEvent.VK_D: if (direction != 'L') direction = 'R'; break;
+                        case KeyEvent.VK_UP: case KeyEvent.VK_W: if (direction != 'D') direction = 'U'; break;
+                        case KeyEvent.VK_DOWN: case KeyEvent.VK_S: if (direction != 'U') direction = 'D'; break;
+                    }
                 }
             }
         }
